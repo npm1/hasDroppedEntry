@@ -37,7 +37,7 @@ const resourceObserver = new PerformanceObserver( (list, observer, hasDroppedEnt
    // Send data from list.getEntries() to analytics.
    if (!callbackHasRun) {
      if (hasDroppedEntry) {
-       // Send a signal that some performancce entries have been lost.
+       // Send a signal that some performance entries have been lost.
      }
      else {
        // Note that performance entries were not lost in this case.
