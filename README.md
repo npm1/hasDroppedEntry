@@ -1,20 +1,21 @@
 # hasDroppedEntry
 
 Author: Nicolás Peña Moreno @npm1
+
 Participate: file an [issue](https://github.com/w3c/performance-timeline/issues/)
 
 ## Introduction
 
 Currently, we recommend using PerformanceObserver, which receives performance entries via a callback that is provided in the constructor of the observer.
-The observer signals which entries it's interested via observe().
+The observer signals which entries it's interested in via the observe() method.
 When called with the buffered flag, this results in buffered entries being dispatched to the observer on the first observer callback.
-The entries are buffered in entryType-specific buffers, and they are useful to allow developers to load performance scripts lazily, instead of early during the page load.
+The entries are buffered in entryType-specific buffers, and they are useful to allow developers to load performance scripts lazily, instead of early during the page load to avoid losing data.
 
-However, such buffers have size limits for memory-saving reasons.
+However, such buffers have size limits for memory-saving reasons (see [maxBufferSize](https://w3c.github.io/timing-entrytypes-registry/#dfn-maxbuffersize)).
 These size limits may vary by user agent, and, in the case of Resource Timing, may be set by the developer.
 Thus we propose adding a parameter to the observer callback: a boolean `hasDroppedEntry`.
 This is set when the observer is observing an entryType such that the buffer at some point was full, preventing an entry from being added to the buffer.
-Note that the buffer being full is not a sufficient condition, as there are buffers that easily become full, like for `paint` (as the only entries for these are the first paint and first contentful paint).
+Note that the buffer being full is not a sufficient condition, as there are buffers that easily become full, like for `paint` (as the only entries for these are the first paint and first contentful paint, and hence the buffer size is 2).
 The buffer must become full AND an entry must have been dropped due to this for `hasDroppedEntry` to be true.
 The `hasDropppedEntry` parameter enables analytics providers to measure how often certain kinds of buffers become full and hence provide feedback to browser vendors about the buffer sizes.
 
@@ -28,7 +29,7 @@ If they frequently become full, user agents may consider increasing the sizes in
 
 ## API
 
-The `hasDroppedEntry` addition may already be seen in the [PerformanceObserverCallback](https://w3c.github.io/performance-timeline/#dom-performanceobservercallback). A bool slot has been [added](https://w3c.github.io/performance-timeline/#dfn-has-dropped-entry) to the performance entry buffer map to cache whether there has been a dropped entry. And the parameter value supplied to the callback is computed on the last steps of the [queue an entry algorithm](https://w3c.github.io/performance-timeline/#queue-a-performanceentry). Example usage:
+The `hasDroppedEntry` addition may already be seen in the [PerformanceObserverCallback](https://w3c.github.io/performance-timeline/#dom-performanceobservercallback). A boolean slot has been [added](https://w3c.github.io/performance-timeline/#dfn-has-dropped-entry) to the performance entry buffer map to cache whether there has been a dropped entry. And the parameter value supplied to the callback is computed on the last steps of the [queue an entry algorithm](https://w3c.github.io/performance-timeline/#queue-a-performanceentry). Example usage:
 
 ```js
 let callbackHasRun = false;
@@ -67,7 +68,4 @@ The boolean does not expose the entryType, but in practice most people use one o
 
 ## References & acknowledgements
 
-Many thanks for valuable feedback and advice from everyone in the WebPerf WG, especially those who participated in the bug discussion:
-
-Nic Jansma
-Yoav Weiss
+Many thanks for valuable feedback and advice from everyone in the WebPerf WG, especially those who participated in the bug discussion: Nic Jansma, Yoav Weiss.
