@@ -1,4 +1,4 @@
-# hasDroppedEntry
+# droppedEntriesCount
 
 Author: Nicolás Peña Moreno @npm1
 
@@ -13,11 +13,11 @@ The entries are buffered in entryType-specific buffers, and they are useful to a
 
 However, such buffers have size limits for memory-saving reasons (see [maxBufferSize](https://w3c.github.io/timing-entrytypes-registry/#dfn-maxbuffersize)).
 These size limits may vary by user agent, and, in the case of Resource Timing, may be set by the developer.
-Thus we propose adding a parameter to the observer callback: a boolean `hasDroppedEntry`.
-This is set when the observer is observing an entryType such that the buffer at some point was full, preventing an entry from being added to the buffer.
+Thus we propose adding a parameter to the observer callback: an integer `droppedEntriesCount`.
+When the observer is observing an entryType such that the buffer at some point was full, preventing an entry from being added to the buffer, the number of dropped entries increases.
 Note that the buffer being full is not a sufficient condition, as there are buffers that easily become full, like for `paint` (as the only entries for these are the first paint and first contentful paint, and hence the buffer size is 2).
-The buffer must become full AND an entry must have been dropped due to this for `hasDroppedEntry` to be true.
-The `hasDropppedEntry` parameter enables analytics providers to measure how often certain kinds of buffers become full and hence provide feedback to browser vendors about the buffer sizes.
+The buffer must become full AND an entry must have been dropped due to this for `droppedEntriesCount` to be incremented.
+The `droppedEntriesCount` parameter enables analytics providers to measure how often certain kinds of buffers become full and hence provide feedback to browser vendors about the buffer sizes.
 
 ## Goals
 
@@ -29,14 +29,14 @@ If they frequently become full, user agents may consider increasing the sizes in
 
 ## API
 
-The `hasDroppedEntry` addition may already be seen in the [PerformanceObserverCallback](https://w3c.github.io/performance-timeline/#dom-performanceobservercallback). A boolean slot has been [added](https://w3c.github.io/performance-timeline/#dfn-has-dropped-entry) to the performance entry buffer map to cache whether there has been a dropped entry. And the parameter value supplied to the callback is computed on the last steps of the [queue an entry algorithm](https://w3c.github.io/performance-timeline/#queue-a-performanceentry). Example usage:
+The `droppedEntriesCount` addition may already be seen in the [PerformanceObserverCallback](https://w3c.github.io/performance-timeline/#dom-performanceobservercallback). An integer slot has been [added](https://w3c.github.io/performance-timeline/#dfn-dropped-entries-count) to the performance entry buffer map to cache whether there has been a dropped entry. And the parameter value supplied to the callback is computed on the last steps of the [queue an entry algorithm](https://w3c.github.io/performance-timeline/#queue-a-performanceentry). Example usage:
 
 ```js
 let callbackHasRun = false;
-const resourceObserver = new PerformanceObserver( (list, observer, hasDroppedEntry) => {
+const resourceObserver = new PerformanceObserver( (list, observer, droppedEntriesCount) => {
    // Send data from list.getEntries() to analytics.
    if (!callbackHasRun) {
-     if (hasDroppedEntry) {
+     if (droppedEntriesCount) {
        // Send a signal that some performance entries have been lost.
      }
      else {
